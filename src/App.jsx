@@ -42,30 +42,35 @@ const App = () => {
   }, [messages, isTyping]);
 
   // Handles sending a user message
-  const handleSend = () => {
-    if (!input.trim()) return;
+  const handleSend = (text) => {
+    const messageText = text !== undefined ? text : input;
 
-    const userMessage = { sender: 'user', text: input };
+    if (!messageText.trim()) return;
+
+    const userMessage = { sender: 'user', text: messageText };
     setMessages((prev) => [...prev, userMessage]);
-    setInput('');
+
+    if (text === undefined) setInput(''); // clear input only for manual typing
+
     setIsTyping(true);
 
-    // Normalize the input for easier matching
-    const normalizedInput = input.trim().toLowerCase();
-
+    const normalizedInput = messageText.trim().toLowerCase();
     let botResponseText;
+
     if (normalizedInput.includes('what is your name') || normalizedInput.includes('who are you')) {
       botResponseText = 'I am your personal chatbot.';
+    } else if (normalizedInput.includes('help me with tasks')) {
+      botResponseText = 'Sure! I can help you manage your tasks.';
+    } else if (normalizedInput.includes('show recent messages')) {
+      botResponseText = `Here are your last messages:\n${messages.slice(-3).map(m => `${m.sender}: ${m.text}`).join('\n')}`;
     } else {
-      // Generic response for all other messages
-      botResponseText = "Hello How can I help you today?";
+      botResponseText = "Hello! How can I help you today?";
     }
 
-    // Simulate a bot response with a delay
     setTimeout(() => {
       setMessages((prev) => [...prev, { sender: 'bot', text: botResponseText }]);
       setIsTyping(false);
-    }, 1500); // 1.5-second delay for a more realistic feel
+    }, 1500);
   };
 
   return (
@@ -79,6 +84,32 @@ const App = () => {
 
       {/* Messages container */}
       <div className="flex-1 px-6 py-4 space-y-4 overflow-y-auto">
+        {/* Welcome Section */}
+        <div className="bg-[#1f1f1f] border border-white/10 rounded-xl p-6 mb-4">
+          <h2 className="text-white text-lg font-semibold mb-2">Welcome! 🤖</h2>
+          <p className="text-white/70 mb-3">I am your personal assistant. You can ask me things like:</p>
+          <div className="flex flex-wrap gap-2">
+            <button
+              className="px-3 py-1 bg-[#2a2a2a] text-white rounded-md hover:bg-[#333]"
+              onClick={() => handleSend('What is your name?')}
+            >
+              What is your name?
+            </button>
+            <button
+              className="px-3 py-1 bg-[#2a2a2a] text-white rounded-md hover:bg-[#333]"
+              onClick={() => handleSend('Help me with tasks')}
+            >
+              Help me with tasks
+            </button>
+            <button
+              className="px-3 py-1 bg-[#2a2a2a] text-white rounded-md hover:bg-[#333]"
+              onClick={() => handleSend('Show recent messages')}
+            >
+              Show recent messages
+            </button>
+          </div>
+        </div>
+
         {messages.map((msg, index) => (
           <div key={index} className="animate-slide-up">
             {msg.sender === 'user' ? (
